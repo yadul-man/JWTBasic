@@ -81,6 +81,37 @@ namespace JWTBasic.Controllers
             return BadRequest(error: "Invalid request payload.\n" + ModelState);
         }
 
+        [HttpPost]
+        [Route("Login")]
+        public async Task<IActionResult> Login([FromBody] UserLoginRequestDTO userLoginRequestDTO)
+        {
+            /*
+                If incoming request is valid:
+                Check if credentials are valid, generate token and send it as response
+            */
+            if (ModelState.IsValid)
+            {
+                var existingUser = await _userManager.FindByEmailAsync(userLoginRequestDTO.Email);
+                if (existingUser == null)
+                {
+                    return BadRequest(error: "Invalid credentials.");
+                }
+
+                var passwordValid = await _userManager.CheckPasswordAsync(existingUser, userLoginRequestDTO.Password);
+                if (passwordValid)
+                {
+                    var token = GenerateJWTToken(existingUser);
+                    return Ok(new LoginRequestResponse()
+                    {
+                        Token = token,
+                        Result = true
+                    });
+                }
+            }
+
+            return BadRequest(error: "Invalid request payload.\n" + ModelState);
+        }
+
         /*
             Generates a JWT (JSON Web Token) for a user by using the JwtSecurityTokenHandler class. It starts by encoding a secret key from the configuration. 
             Then, it creates claims that store user-specific information, the user's ID, email, and a unique token ID (Jti). 
