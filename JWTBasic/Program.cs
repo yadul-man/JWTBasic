@@ -91,6 +91,8 @@ namespace JWTBasic
 
             app.UseAuthorization();
 
+            app.UseCors("Frontend");
+
             app.MapControllers();
 
             app.Run();
